@@ -88,7 +88,7 @@ export default function Contact() {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 {error && (
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700 text-sm">
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center gap-3">
                     <AlertCircle className="w-5 h-5 flex-shrink-0" />
                     <span>{error}</span>
                   </div>
@@ -170,21 +170,23 @@ export default function Contact() {
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-[#1F3D2B] text-white font-medium hover:bg-[#16281C] transition-colors shadow-sm cursor-pointer disabled:opacity-60"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Sending to Email...
-                    </>
-                  ) : (
-                    <>
-                      Send Message <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
+                <div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-[#1F3D2B] text-white font-medium hover:bg-[#16281C] transition-colors shadow-sm cursor-pointer disabled:opacity-60"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" /> Sending Email...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4" /> Send Email Message <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
               </form>
             )}
           </div>
@@ -222,10 +224,10 @@ export default function Contact() {
                       Support Inquiries
                     </span>
                     <a
-                      href="mailto:blockvault0926@gmail.com"
+                      href="mailto:blockvaultsupport9@gmail.com"
                       className="text-sm text-[#1F3D2B] font-medium hover:underline"
                     >
-                      blockvault0926@gmail.com
+                      blockvaultsupport9@gmail.com
                     </a>
                   </div>
                 </li>

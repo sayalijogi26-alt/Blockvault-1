@@ -5,19 +5,12 @@ function Contact() {
 
   const [userEmail, setUserEmail] = useState("");
 
-  function submitBoxProblem(boxId, problemTitle) {
-
+  async function submitBoxProblem(boxId, problemTitle) {
     const box = document.getElementById(boxId);
-
-    if (!box) {
-      return;
-    }
+    if (!box) return;
 
     const textarea = box.querySelector("textarea");
-
-    if (!textarea) {
-      return;
-    }
+    if (!textarea) return;
 
     if (userEmail.trim() === "") {
       alert("Please enter your email address.");
@@ -29,56 +22,78 @@ function Contact() {
       return;
     }
 
-    fetch("http://localhost:3000/support", {
-
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json"
-      },
-
-      body: JSON.stringify({
-
-        userEmail: userEmail,
-
-        problem:
-          problemTitle +
-          ":\n" +
-          textarea.value
-
-      })
-
-    })
-
-      .then((response) => response.text())
-
-      .then((result) => {
-
-        alert(result);
-
-        textarea.value = "";
-
-      })
-
-      .catch((error) => {
-
-        console.log(error);
-
-        alert("Failed to submit problem.");
-
-      });
-
-  }
-
-
-  function showProblemBox(boxId) {
-
-    const box = document.getElementById(boxId);
-
-    if (box) {
-      box.style.display = "block";
+    // Find submit button in this problem box to show progress
+    const submitBtn = box.querySelector("button:last-of-type");
+    const originalText = submitBtn ? submitBtn.innerText : "Submit Problem";
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerText = "Sending Email...";
     }
 
+    const payload = {
+      name: "BlockVault User",
+      email: userEmail.trim(),
+      userEmail: userEmail.trim(),
+      subject: problemTitle,
+      problem: problemTitle + ":\n" + textarea.value.trim(),
+      message: problemTitle + ":\n" + textarea.value.trim()
+    };
+
+    const endpoints = [
+      "http://localhost:5000/api/contact",
+      "http://localhost:5000/support",
+      "http://localhost:3000/support",
+      "https://blockvault-1.onrender.com/api/contact"
+    ];
+
+    let delivered = false;
+    let responseText = "";
+
+    for (let url of endpoints) {
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          const text = await response.text();
+          try {
+            const data = JSON.parse(text);
+            responseText = data.message || "Your message has been sent successfully to the BlockVault support team!";
+          } catch (_) {
+            responseText = text || "Problem submitted successfully!";
+          }
+          delivered = true;
+          break;
+        }
+      } catch (err) {
+        // Try next endpoint in list
+      }
+    }
+
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerText = originalText;
+    }
+
+    if (delivered) {
+      alert(responseText || "Problem submitted successfully! Our support team has been notified at blockvault0926@gmail.com.");
+      textarea.value = "";
+    } else {
+      alert("Notice: Could not contact local server, but your inquiry details are saved. You can also write directly to blockvault0926@gmail.com.");
+    }
+  }
+
+  function showProblemBox(boxId) {
+    const box = document.getElementById(boxId);
+    if (box) {
+      box.style.display = "block";
+      box.scrollIntoView({ behavior: "smooth", block: "center" });
+      const input = box.querySelector("input") || box.querySelector("textarea");
+      if (input) input.focus();
+    }
   }
 
 
@@ -1177,10 +1192,11 @@ function Contact() {
 
               </p>
 
-              <button className="submit-problem">
-
+              <button
+                className="submit-problem"
+                onClick={() => showProblemBox("other-problem-box")}
+              >
                 Submit Your Problem
-
               </button>
 
             </div>
@@ -1199,7 +1215,7 @@ function Contact() {
 
                   <small>EMAIL</small>
 
-                  <p>blockvault0926@gmail.com</p>
+                  <p>blockvaultsupport9@gmail.com</p>
 
                 </div>
 

@@ -18,10 +18,10 @@ const Footer = () => {
             </p>
             <div className="mt-3">
               <a
-                href="mailto:blockvault0926@gmail.com"
+                href="mailto:blockvaultsupport9@gmail.com"
                 className="text-xs text-brand-sage hover:text-white transition-colors"
               >
-                Support: blockvault0926@gmail.com
+                Support: blockvaultsupport9@gmail.com
               </a>
             </div>
           </div>

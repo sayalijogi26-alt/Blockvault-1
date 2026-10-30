@@ -359,11 +359,29 @@ const getNotifications  = () => get('/notifications');
 // ─────────────────────────────────────────────────────────────────────────
 // MODULE 8 — CONTACT / SUPPORT EMAIL
 // ─────────────────────────────────────────────────────────────────────────
-const sendContactMessage = (data) => {
-  const contactUrl = cleanBaseUrl
+const sendContactMessage = async (data) => {
+  const primaryUrl = cleanBaseUrl
     ? (cleanBaseUrl.endsWith('/api') ? `${cleanBaseUrl}/contact` : `${cleanBaseUrl}/api/contact`)
     : 'https://blockvault-1.onrender.com/api/contact';
-  return post(contactUrl, data);
+
+  const res = await post(primaryUrl, data);
+
+  // If primary endpoint failed or is not available, attempt cloud delivery fallback
+  if (!res || !res.success) {
+    if (primaryUrl !== 'https://blockvault-1.onrender.com/api/contact') {
+      try {
+        console.warn('Primary contact endpoint failed, falling back to cloud endpoint...', res?.message);
+        const fallbackRes = await post('https://blockvault-1.onrender.com/api/contact', data);
+        if (fallbackRes && fallbackRes.success) {
+          return fallbackRes;
+        }
+      } catch (fallbackErr) {
+        console.error('Fallback cloud email dispatch error:', fallbackErr);
+      }
+    }
+  }
+
+  return res;
 };
 
 // ─────────────────────────────────────────────────────────────────────────
