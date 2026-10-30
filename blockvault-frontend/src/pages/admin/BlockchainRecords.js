@@ -160,11 +160,13 @@ export default function BlockchainRecords() {
         // Use verified pre-loaded blocks only if backend is unreachable
         setBlockchainData(defaultBlocks);
         setChainValid(true);
+    apiService.triggerBlockchainChange?.();
       }
     } catch (err) {
       console.warn('Backend blockchain ledger not reachable, displaying synchronized ledger records:', err);
       setBlockchainData(defaultBlocks);
       setChainValid(true);
+    apiService.triggerBlockchainChange?.();
     }
   };
 
@@ -257,6 +259,7 @@ export default function BlockchainRecords() {
         setIsMining(false);
         setIsMineModalOpen(false);
         setChainValid(true);
+    apiService.triggerBlockchainChange?.();
         return;
       }
     } catch (err) {
@@ -306,6 +309,7 @@ export default function BlockchainRecords() {
     setIsMining(false);
     setIsMineModalOpen(false);
     setChainValid(true);
+    apiService.triggerBlockchainChange?.();
   };
 
   const filteredBlocks = blockchainData.filter((b) => {

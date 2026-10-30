@@ -182,9 +182,30 @@ const getCertificateById = async (id) => {
   };
 };
 
-const generateCertificate = (data) => post('/certificates/generate', data);
-const revokeCertificate   = (certificateId, reason) => post('/certificates/revoke', { certificateId, reason });
-const restoreCertificate  = (certificateId) => post('/certificates/restore', { certificateId });
+const triggerBlockchainChange = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('blockvault_blockchain_change'));
+    try {
+      localStorage.setItem('blockvault_blockchain_last_updated', String(Date.now()));
+    } catch (_) {}
+  }
+};
+
+const generateCertificate = async (data) => {
+  const res = await post('/certificates/generate', data);
+  if (res && res.success) triggerBlockchainChange();
+  return res;
+};
+const revokeCertificate = async (certificateId, reason) => {
+  const res = await post('/certificates/revoke', { certificateId, reason });
+  if (res && res.success) triggerBlockchainChange();
+  return res;
+};
+const restoreCertificate = async (certificateId) => {
+  const res = await post('/certificates/restore', { certificateId });
+  if (res && res.success) triggerBlockchainChange();
+  return res;
+};
 
 // ─────────────────────────────────────────────────────────────────────────
 // MODULE 3 — SHA-256 HASH GENERATION
@@ -280,7 +301,11 @@ const getVerificationById = (certificateId) =>
 // ─────────────────────────────────────────────────────────────────────────
 const getBlockchainChain        = ()              => get('/blockchain/chain');
 const validateBlockchain        = ()              => get('/blockchain/validate');
-const addBlockchainRecord       = (data)          => post('/blockchain/add', data);
+const addBlockchainRecord = async (data) => {
+  const res = await post('/blockchain/add', data);
+  if (res && res.success) triggerBlockchainChange();
+  return res;
+};
 const getRecordByCertificateId  = async (id) => {
   try {
     const certRes = await getCertificateById(id);
@@ -318,6 +343,9 @@ const getDashboardStats = async () => {
       isChainValid: true,
       verificationRate: '75.0',
     },
+    monthlyIssuance: [
+      { month: 'Oct', valid: 3, invalid: 1, sortKey: 202610 },
+    ],
   };
 };
 const getAnalytics      = () => get('/reports/analytics');
@@ -376,6 +404,7 @@ const apiService = {
   getBlockchainChain,
   validateBlockchain,
   addBlockchainRecord,
+  triggerBlockchainChange,
   getRecordByCertificateId,
   // Analytics
   getDashboardStats,

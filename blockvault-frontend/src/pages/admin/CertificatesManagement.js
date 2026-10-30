@@ -243,6 +243,7 @@ export default function CertificatesManagement() {
     const actionText = isCurrentlyInvalid ? 'restored to Valid' : 'marked as Invalid (Revoked)';
     showToast(`Certificate ${revokeModalCert.id} has been ${actionText}.`);
     setRevokeModalCert(null);
+    apiService.triggerBlockchainChange?.();
   };
 
   // ACTION 4: Issue Certificate via Backend (Real PDFKit + QR + SHA-256)
@@ -275,6 +276,7 @@ export default function CertificatesManagement() {
           grade: 'First Class with Distinction',
         });
         showToast(`Certificate ${newCert.id} issued and anchored to blockchain successfully!`);
+        apiService.triggerBlockchainChange?.();
         // Immediately open preview modal showing the generated PDF
         setViewModalCert(newCert);
       } else {
