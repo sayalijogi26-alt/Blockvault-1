@@ -331,7 +331,12 @@ const getNotifications  = () => get('/notifications');
 // ─────────────────────────────────────────────────────────────────────────
 // MODULE 8 — CONTACT / SUPPORT EMAIL
 // ─────────────────────────────────────────────────────────────────────────
-const sendContactMessage = (data) => post('/contact', data);
+const sendContactMessage = (data) => {
+  const contactUrl = cleanBaseUrl
+    ? (cleanBaseUrl.endsWith('/api') ? `${cleanBaseUrl}/contact` : `${cleanBaseUrl}/api/contact`)
+    : 'https://blockvault-1.onrender.com/api/contact';
+  return post(contactUrl, data);
+};
 
 // ─────────────────────────────────────────────────────────────────────────
 // ADMIN AUTH (Real backend JWT authentication)

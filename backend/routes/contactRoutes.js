@@ -189,7 +189,7 @@ router.post("/", async (req, res) => {
   }
 
   // 2. Prepare email payload
-  const recipient = (process.env.SUPPORT_EMAIL || "blockvault0926@gmail.com").trim();
+  const recipient = (process.env.SUPPORT_EMAIL || "blockvault0926@gmail.com").trim() || "blockvault0926@gmail.com";
   if (!recipient) {
     console.error("Support email error: neither SUPPORT_EMAIL nor EMAIL_USER is configured.");
     return res.status(500).json({
