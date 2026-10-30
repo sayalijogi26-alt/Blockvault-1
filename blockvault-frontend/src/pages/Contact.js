@@ -88,9 +88,20 @@ export default function Contact() {
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 {error && (
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-700 text-sm">
-                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                    <span>{error}</span>
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm space-y-2">
+                    <div className="flex items-center gap-3">
+                      <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                      <span>{error}</span>
+                    </div>
+                    <div className="pt-2 border-t border-red-200/60 flex items-center justify-between text-xs">
+                      <span>Prefer sending directly?</span>
+                      <a
+                        href={`mailto:blockvault0926@gmail.com?subject=${encodeURIComponent(formData.subject || 'BlockVault Inquiry')}&body=${encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`)}`}
+                        className="font-medium text-[#1F3D2B] hover:underline inline-flex items-center gap-1"
+                      >
+                        <Mail className="w-3.5 h-3.5" /> Open in Email Client
+                      </a>
+                    </div>
                   </div>
                 )}
 
@@ -177,11 +188,11 @@ export default function Contact() {
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" /> Sending to Email...
+                      <Loader2 className="w-4 h-4 animate-spin" /> Sending Email...
                     </>
                   ) : (
                     <>
-                      Send Message <ArrowRight className="w-4 h-4" />
+                      <Mail className="w-4 h-4" /> Send Email Message <ArrowRight className="w-4 h-4" />
                     </>
                   )}
                 </button>
