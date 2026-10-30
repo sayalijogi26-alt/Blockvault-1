@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/Blockvault-1/static/css/main.ebebe6ab.css",
-    "main.js": "/Blockvault-1/static/js/main.0fab82b2.js",
+    "main.js": "/Blockvault-1/static/js/main.53b39349.js",
     "index.html": "/Blockvault-1/index.html",
     "main.ebebe6ab.css.map": "/Blockvault-1/static/css/main.ebebe6ab.css.map",
-    "main.0fab82b2.js.map": "/Blockvault-1/static/js/main.0fab82b2.js.map"
+    "main.53b39349.js.map": "/Blockvault-1/static/js/main.53b39349.js.map"
   },
   "entrypoints": [
     "static/css/main.ebebe6ab.css",
-    "static/js/main.0fab82b2.js"
+    "static/js/main.53b39349.js"
   ]
 }
