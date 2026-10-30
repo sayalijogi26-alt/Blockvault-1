@@ -7,25 +7,67 @@ async function verifyEmailConfig() {
   console.log("=========================================");
   console.log("🔍 BlockVault Email Configuration Check");
   console.log("=========================================");
-  console.log("Recipient (SUPPORT_EMAIL):", process.env.SUPPORT_EMAIL || "blockvault0926@gmail.com");
+  const recipient = process.env.SUPPORT_EMAIL || "blockvaultsupport9@gmail.com";
+  console.log("Recipient (SUPPORT_EMAIL):", recipient);
   console.log("Sender User (EMAIL_USER):", process.env.EMAIL_USER || "(not set)");
   console.log("Password Set:", process.env.EMAIL_PASSWORD ? "Yes (length: " + process.env.EMAIL_PASSWORD.trim().length + ")" : "No");
-  console.log("Resend API Key Set:", process.env.RESEND_API_KEY ? "Yes" : "No");
+  const resendKey = process.env.RESEND_API_KEY;
+  console.log("Resend API Key:", resendKey ? "Present (" + resendKey.slice(0, 10) + "...)" : "No");
   console.log("-----------------------------------------");
 
-  // 1. Check Gmail SMTP
+  // 1. Check Resend API Delivery
+  if (resendKey) {
+    console.log("Testing Resend API delivery to", recipient, "...");
+    const payload = JSON.stringify({
+      from: "BlockVault <onboarding@resend.dev>",
+      to: [recipient],
+      subject: "BlockVault Verification Email",
+      html: "<p>Live test confirming delivery to " + recipient + "</p>",
+    });
+
+    try {
+      const resendRes = await new Promise((resolve, reject) => {
+        const req = https.request(
+          {
+            hostname: "api.resend.com",
+            port: 443,
+            path: "/emails",
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${resendKey}`,
+              "Content-Type": "application/json",
+              "Content-Length": Buffer.byteLength(payload),
+            },
+            timeout: 10000,
+          },
+          (res) => {
+            let data = "";
+            res.on("data", (c) => (data += c));
+            res.on("end", () => resolve({ status: res.statusCode, data }));
+          }
+        );
+        req.on("error", reject);
+        req.write(payload);
+        req.end();
+      });
+
+      if (resendRes.status >= 200 && resendRes.status < 300) {
+        console.log("✅ Resend API delivery: SUCCESS! Email ID:", JSON.parse(resendRes.data).id);
+      } else {
+        console.error("❌ Resend API delivery failed (" + resendRes.status + "):", resendRes.data);
+      }
+    } catch (err) {
+      console.error("❌ Resend API connection error:", err.message);
+    }
+  }
+
+  // 2. Check Gmail SMTP
   const user = process.env.EMAIL_USER;
   const pass = process.env.EMAIL_PASSWORD ? process.env.EMAIL_PASSWORD.trim().replace(/\s+/g, "") : null;
 
   if (user && pass) {
+    console.log("-----------------------------------------");
     console.log("Testing Gmail SMTP connection with", user, "...");
-    const isLikelyAccountPassword = pass.length !== 16 || /[0-9!@#$%^&*()]/.test(pass);
-    if (isLikelyAccountPassword) {
-      console.warn("⚠️  WARNING: EMAIL_PASSWORD does not look like a 16-letter Google App Password.");
-      console.warn("   Google SMTP requires an App Password from https://myaccount.google.com/apppasswords");
-      console.warn("   Your regular Gmail login password (like 'Pass@123') will be rejected by Google with error 535.");
-    }
-
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: { user: user.trim(), pass },
@@ -33,12 +75,10 @@ async function verifyEmailConfig() {
 
     try {
       await transporter.verify();
-      console.log("✅ Gmail SMTP connection: SUCCESS! Real App Password verified.");
+      console.log("✅ Gmail SMTP connection: SUCCESS! App Password verified.");
     } catch (err) {
-      console.error("❌ Gmail SMTP connection FAILED:", err.message);
+      console.log("ℹ️  Gmail SMTP Note:", err.message.slice(0, 100) + "...");
     }
-  } else {
-    console.log("ℹ️  Gmail SMTP not fully configured in local .env.");
   }
 
   console.log("=========================================");

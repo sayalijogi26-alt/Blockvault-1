@@ -51,7 +51,7 @@ function sendSupportEmail(req, res) {
         console.warn("Could not save to inquiries.json:", saveErr.message);
     }
 
-    const recipient = process.env.SUPPORT_EMAIL || "blockvault0926@gmail.com";
+    const recipient = process.env.SUPPORT_EMAIL || "blockvaultsupport9@gmail.com";
 
     // 1. Try local SMTP if configured
     const transporter = getTransporter();

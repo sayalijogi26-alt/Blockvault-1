@@ -96,11 +96,8 @@ async function autoUnsuppressResend(apiKey, recipientEmail) {
  * Send an email via Resend HTTP API (works seamlessly on Render without SMTP port blocking)
  */
 async function sendViaResend({ to, replyTo, subject, html, text }) {
-  const apiKey = process.env.RESEND_API_KEY;
+  const apiKey = (process.env.RESEND_API_KEY || "").trim();
   if (!apiKey) return null;
-
-  const primaryRecipient = Array.isArray(to) ? to[0] : to;
-  await autoUnsuppressResend(apiKey, primaryRecipient);
 
   return new Promise((resolve, reject) => {
     const payload = JSON.stringify({
@@ -255,14 +252,14 @@ router.post("/", async (req, res) => {
   }
 
   // 2. Prepare email payload
-  const recipient = (process.env.SUPPORT_EMAIL || "blockvault0926@gmail.com").trim() || "blockvault0926@gmail.com";
+  const recipient = (process.env.SUPPORT_EMAIL || "blockvaultsupport9@gmail.com").trim() || "blockvaultsupport9@gmail.com";
   if (!recipient) {
     console.error("Support email error: neither SUPPORT_EMAIL nor EMAIL_USER is configured.");
     return res.status(500).json({
       success: false,
       saved: true,
       emailSent: false,
-      message: "Server configuration error: SUPPORT_EMAIL is not set. Please set SUPPORT_EMAIL in Render environment.",
+      message: "Server configuration error: SUPPORT_EMAIL is not set.",
       error: "SUPPORT_EMAIL_MISSING",
     });
   }
@@ -307,17 +304,17 @@ ${msgContent}
   const emailText = `BlockVault Contact Inquiry\n\nFrom: ${senderName}\nEmail: ${senderEmail}\nSubject: ${msgSubject}\nDate: ${new Date().toLocaleString()}\n\nMessage:\n${msgContent}\n\nReply directly to: ${senderEmail}`;
 
   // 3. Dispatch Email Strategy:
-  // Priority A: Direct Gmail SMTP (Guarantees delivery to blockvault0926@gmail.com Primary Inbox)
-  // Priority B: Resend HTTP API (if RESEND_API_KEY is configured)
-  // Priority C: Brevo HTTP API (if BREVO_API_KEY is configured)
-  // Priority D: Cloud Relay Fallback (for local development or unconfigured SMTP)
   let emailSent = false;
   let deliveryProvider = null;
   let emailError = null;
 
-  // Priority A: Direct Gmail SMTP via Nodemailer
+  // Check if EMAIL_PASSWORD looks like a dedicated 16-character Google App Password
+  const rawPass = (process.env.EMAIL_PASSWORD || "").trim().replace(/\s+/g, "");
+  const hasAppPassword = rawPass.length === 16 && /^[a-zA-Z]+$/.test(rawPass);
   const transporter = getEmailTransporter();
-  if (transporter) {
+
+  // Try Gmail SMTP if a real App Password is provided
+  if (hasAppPassword && transporter) {
     try {
       const fromAddr = process.env.EMAIL_USER || recipient;
       const info = await transporter.sendMail({
@@ -330,22 +327,15 @@ ${msgContent}
       });
       emailSent = true;
       deliveryProvider = "Gmail SMTP";
-      console.log("Contact email sent via Gmail SMTP directly to Primary Inbox, messageId:", info.messageId);
+      console.log("Contact email sent via Gmail SMTP to", recipient, "ID:", info.messageId);
     } catch (smtpErr) {
-      console.error("Nodemailer SMTP delivery error:", {
-        name: smtpErr.name,
-        code: smtpErr.code,
-        message: smtpErr.message,
-      });
-      if (smtpErr.responseCode === 535 || smtpErr.code === 'EAUTH' || (smtpErr.message && smtpErr.message.includes('BadCredentials'))) {
-        console.warn("⚠️  Google SMTP Note: A 16-character Google App Password (generated at https://myaccount.google.com/apppasswords) is required for EMAIL_PASSWORD. Standard account login passwords are rejected with 535 by Gmail.");
-      }
-      emailError = `SMTP ${smtpErr.code || smtpErr.name || 'Error'}: ${smtpErr.message}`;
+      console.error("Nodemailer SMTP error:", smtpErr.message);
+      emailError = `SMTP: ${smtpErr.message}`;
     }
   }
 
-  // Priority B: Resend HTTP API (fallback)
-  if (!emailSent && process.env.RESEND_API_KEY) {
+  // Priority: Resend HTTP API (works seamlessly on Render and local)
+  if (!emailSent) {
     try {
       await sendViaResend({
         to: recipient,
@@ -356,28 +346,31 @@ ${msgContent}
       });
       emailSent = true;
       deliveryProvider = "Resend HTTP API";
-      console.log("Contact email sent via Resend API to", recipient);
+      console.log("Contact email sent successfully via Resend API to", recipient);
+    } catch (resendErr) {
+      console.error("Resend API failed:", resendErr.message);
+      emailError = `Resend: ${resendErr.message}`;
+    }
+  }
 
-      // Also deliver a verified copy to sayalijogi26@gmail.com (Resend Account Owner)
-      // Because onboarding@resend.dev is 100% guaranteed to deliver to the owner without being suppressed!
-      const ownerEmail = (process.env.RESEND_OWNER_EMAIL || "sayalijogi26@gmail.com").trim();
-      if (ownerEmail && ownerEmail.toLowerCase() !== recipient.toLowerCase()) {
-        try {
-          await sendViaResend({
-            to: ownerEmail,
-            replyTo: senderEmail,
-            subject: `[BlockVault Support] ${emailSubject}`,
-            html: emailHtml,
-            text: emailText,
-          });
-          console.log("Verified backup copy delivered to Resend account owner:", ownerEmail);
-        } catch (copyErr) {
-          console.warn("Could not deliver copy to owner:", copyErr.message);
-        }
-      }
-    } catch (err) {
-      console.error("Resend API failed:", err.message);
-      emailError = `Resend: ${err.message}`;
+  // Fallback: Nodemailer SMTP if not tried yet and configured
+  if (!emailSent && transporter && !hasAppPassword) {
+    try {
+      const fromAddr = process.env.EMAIL_USER || recipient;
+      const info = await transporter.sendMail({
+        from: `"BlockVault Contact" <${fromAddr}>`,
+        to: recipient,
+        replyTo: senderEmail,
+        subject: emailSubject,
+        html: emailHtml,
+        text: emailText,
+      });
+      emailSent = true;
+      deliveryProvider = "Gmail SMTP";
+      console.log("Contact email sent via Gmail SMTP fallback to", recipient);
+    } catch (smtpErr) {
+      console.error("Fallback SMTP error:", smtpErr.message);
+      emailError = `SMTP: ${smtpErr.message}`;
     }
   }
 
