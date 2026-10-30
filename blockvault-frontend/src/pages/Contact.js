@@ -74,46 +74,23 @@ export default function Contact() {
                 <p className="text-sm text-gray-500 mb-6">
                   {successMessage || 'Your message has been delivered to the BlockVault support team. We will get back to you shortly.'}
                 </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <a
-                    href={`https://mail.google.com/mail/?view=cm&fs=1&to=blockvaultsupport9@gmail.com&su=${encodeURIComponent(formData.subject || 'BlockVault Contact Inquiry')}&body=${encodeURIComponent(`From: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#1F3D2B] text-white text-sm font-medium hover:bg-[#16281C] transition-colors shadow-sm"
-                  >
-                    <Mail className="w-4 h-4" /> Open in Gmail App
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSubmitted(false);
-                      setFormData({ name: '', email: '', subject: '', message: '' });
-                    }}
-                    className="px-6 py-2.5 rounded-full border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
-                  >
-                    Send Another Message
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSubmitted(false);
+                    setFormData({ name: '', email: '', subject: '', message: '' });
+                  }}
+                  className="px-6 py-2.5 rounded-full border border-[#1F3D2B] text-[#1F3D2B] text-sm font-medium hover:bg-[#1F3D2B] hover:text-white transition-colors cursor-pointer"
+                >
+                  Send Another Message
+                </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
                 {error && (
-                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm space-y-2">
-                    <div className="flex items-center gap-3">
-                      <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                      <span>{error}</span>
-                    </div>
-                    <div className="pt-2 border-t border-red-200/60 flex items-center justify-between text-xs">
-                      <span>Prefer sending directly?</span>
-                      <a
-                        href={`https://mail.google.com/mail/?view=cm&fs=1&to=blockvaultsupport9@gmail.com&su=${encodeURIComponent(formData.subject || 'BlockVault Inquiry')}&body=${encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium text-[#1F3D2B] hover:underline inline-flex items-center gap-1"
-                      >
-                        <Mail className="w-3.5 h-3.5" /> Compose in Gmail
-                      </a>
-                    </div>
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                    <span>{error}</span>
                   </div>
                 )}
 
@@ -209,25 +186,6 @@ export default function Contact() {
                       </>
                     )}
                   </button>
-
-                  <div className="pt-3 text-center flex items-center justify-center gap-2 text-xs text-gray-500">
-                    <span>Or direct compose via:</span>
-                    <a
-                      href={`https://mail.google.com/mail/?view=cm&fs=1&to=blockvaultsupport9@gmail.com&su=${encodeURIComponent(formData.subject || 'BlockVault Inquiry')}&body=${encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium text-[#1F3D2B] hover:underline inline-flex items-center gap-1"
-                    >
-                      <Mail className="w-3 h-3" /> Gmail
-                    </a>
-                    <span>•</span>
-                    <a
-                      href={`mailto:blockvaultsupport9@gmail.com?subject=${encodeURIComponent(formData.subject || 'BlockVault Inquiry')}&body=${encodeURIComponent(`Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`)}`}
-                      className="font-medium text-[#1F3D2B] hover:underline"
-                    >
-                      Default Mail
-                    </a>
-                  </div>
                 </div>
               </form>
             )}
