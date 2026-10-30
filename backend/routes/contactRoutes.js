@@ -357,6 +357,24 @@ ${msgContent}
       emailSent = true;
       deliveryProvider = "Resend HTTP API";
       console.log("Contact email sent via Resend API to", recipient);
+
+      // Also deliver a verified copy to sayalijogi26@gmail.com (Resend Account Owner)
+      // Because onboarding@resend.dev is 100% guaranteed to deliver to the owner without being suppressed!
+      const ownerEmail = (process.env.RESEND_OWNER_EMAIL || "sayalijogi26@gmail.com").trim();
+      if (ownerEmail && ownerEmail.toLowerCase() !== recipient.toLowerCase()) {
+        try {
+          await sendViaResend({
+            to: ownerEmail,
+            replyTo: senderEmail,
+            subject: `[BlockVault Support] ${emailSubject}`,
+            html: emailHtml,
+            text: emailText,
+          });
+          console.log("Verified backup copy delivered to Resend account owner:", ownerEmail);
+        } catch (copyErr) {
+          console.warn("Could not deliver copy to owner:", copyErr.message);
+        }
+      }
     } catch (err) {
       console.error("Resend API failed:", err.message);
       emailError = `Resend: ${err.message}`;
